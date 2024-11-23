@@ -25,9 +25,9 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       final password = _passwordController.text;
 
       if (_register) {
-        await ref.read(authControllerProvider).register(email, password);
+        await ref.read(authServiceProvider).register(email, password);
       } else {
-        await ref.read(authControllerProvider).signIn(email, password);
+        await ref.read(authServiceProvider).signIn(email, password);
       }
 
       snackbarKey.currentState
@@ -37,7 +37,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
   Future<void> _signInUpWithGoogle() async {
     try {
-      await ref.read(authControllerProvider).signInWithGoogle();
+      await ref.read(authServiceProvider).signInWithGoogle();
     } catch (e) {
       snackbarKey.currentState?.showSnackBar(globalSnackBar(e.toString()));
     }

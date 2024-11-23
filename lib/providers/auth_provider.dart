@@ -8,6 +8,13 @@ final googleSignInProvider = Provider<GoogleSignIn>((ref) => GoogleSignIn());
 final firebaseAuthProvider =
     Provider<FirebaseAuth>((ref) => FirebaseAuth.instance);
 
+// Provider for current user id
+final getUserIdProvider = Provider<String?>((ref) {
+  final firebaseAuth = FirebaseAuth.instance;
+  final user = firebaseAuth.currentUser;
+  return user?.uid;
+});
+
 /// Provider that listens auth state changes
 final authStateProvider = StreamProvider<User?>((ref) {
   final auth = ref.watch(firebaseAuthProvider);
@@ -15,18 +22,18 @@ final authStateProvider = StreamProvider<User?>((ref) {
 });
 
 /// Provider for authentication actions
-final authControllerProvider = Provider<AuthController>((ref) {
+final authServiceProvider = Provider<AuthService>((ref) {
   final auth = ref.watch(firebaseAuthProvider);
   final googleSignIn = ref.watch(googleSignInProvider);
-  return AuthController(auth: auth, googleSignIn: googleSignIn);
+  return AuthService(auth: auth, googleSignIn: googleSignIn);
 });
 
 /// Controller to handle authentication actions
-class AuthController {
+class AuthService {
   final FirebaseAuth auth;
   final GoogleSignIn googleSignIn;
 
-  AuthController({required this.auth, required this.googleSignIn});
+  AuthService({required this.auth, required this.googleSignIn});
 
   Future<void> signIn(String email, String password) async {
     await auth.signInWithEmailAndPassword(email: email, password: password);
