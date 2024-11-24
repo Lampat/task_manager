@@ -5,7 +5,9 @@ import 'package:task_manager/providers/auth_provider.dart';
 import 'package:task_manager/providers/task_provider.dart';
 import 'package:task_manager/screens/task_screen.dart';
 import 'package:task_manager/shared/animated_navigation.dart';
+import 'package:task_manager/shared/date_format.dart';
 import 'package:task_manager/shared/delete_dialog.dart';
+import 'package:task_manager/shared/priority_color.dart';
 
 class TaskTile extends ConsumerWidget {
   const TaskTile({
@@ -19,43 +21,75 @@ class TaskTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ExpansionTile(
-      title: Text(
-        category.name[0].toUpperCase() + category.name.substring(1),
-        style: const TextStyle(fontWeight: FontWeight.bold),
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12.0),
       ),
-      children: tasksInCategory.map((task) {
-        return ListTile(
-          title: Text(task.title),
-          subtitle: Row(
-            children: [
-              Text(
-                'Priority: ${task.priority.name[0].toUpperCase() + task.priority.name.substring(1)}',
+      child: ExpansionTile(
+        shape: Border.all(color: Colors.transparent),
+        title: Text(
+          category.name[0].toUpperCase() + category.name.substring(1),
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        children: tasksInCategory.map((task) {
+          return Card(
+            elevation: 4,
+            margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12.0),
+            ),
+            child: ListTile(
+              contentPadding: const EdgeInsetsDirectional.symmetric(
+                  vertical: 10, horizontal: 16),
+              leading: CircleAvatar(
+                backgroundColor: priorityColor(task.priority),
+                child: priorityIcon(task.priority),
               ),
-              const Spacer(),
-              Text(
-                'Due: ${task.dueDate.toLocal()}'.split('.')[0],
-                style: const TextStyle(fontSize: 12),
+              title: Text(
+                task.title,
+                style: const TextStyle(
+                  // color: Colors.grey[500],
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ],
-          ),
-          trailing: IconButton(
-            icon: const Icon(Icons.delete),
-            color: Colors.deepPurple[300],
-            onPressed: () async {
-              final userId = ref.read(getUserIdProvider);
-              final confirmDelete = await deleteDialog(context, task.title);
-              if (confirmDelete) {
-                ref.read(taskServiceProvider).deleteTask(userId ?? "", task.id);
-              }
-            },
-          ),
-          onTap: () {
-            Navigator.push(
-                context, createAnimatedRoute(AddEditTaskScreen(task: task)));
-          },
-        );
-      }).toList(),
+              subtitle: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Priority: ${task.priority.name[0].toUpperCase() + task.priority.name.substring(1)}',
+                  ),
+                  // const Spacer(),
+                  Text(
+                    'Due: ${formatIsoToReadableDate(task.dueDate.toLocal().toIso8601String())}',
+                    // 'Due: ${task.dueDate.toLocal()}'.split('.')[0],
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                ],
+              ),
+              trailing: IconButton(
+                icon: const Icon(Icons.delete),
+                color: Colors.deepPurple[300],
+                onPressed: () async {
+                  final userId = ref.read(getUserIdProvider);
+                  final confirmDelete = await deleteDialog(context, task.title);
+                  if (confirmDelete) {
+                    ref
+                        .read(taskServiceProvider)
+                        .deleteTask(userId ?? "", task.id);
+                  }
+                },
+              ),
+              onTap: () {
+                Navigator.push(context,
+                    createAnimatedRoute(AddEditTaskScreen(task: task)));
+              },
+            ),
+          );
+        }).toList(),
+      ),
     );
   }
 }

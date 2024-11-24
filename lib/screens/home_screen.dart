@@ -33,13 +33,21 @@ class HomeScreen extends ConsumerWidget {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: TextFormField(
               onChanged: (value) => searchQuery.state = value,
               decoration: const InputDecoration(
                 labelText: 'Search Tasks',
                 prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
+                // filled: true,
+                // fillColor: Colors.deepPurple[50],
+                border: OutlineInputBorder(
+                  // borderSide: BorderSide.none,
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(25.0),
+                  ),
+                ),
               ),
             ),
           ),

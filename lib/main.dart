@@ -27,13 +27,21 @@ class MyApp extends ConsumerWidget {
       title: 'Flutter Demo',
       scaffoldMessengerKey: snackbarKey,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.deepPurple,
+        ),
+        listTileTheme: const ListTileThemeData(
+          textColor: Colors.black,
+        ),
         useMaterial3: true,
       ),
       darkTheme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.deepPurple,
           brightness: Brightness.dark,
+        ),
+        listTileTheme: const ListTileThemeData(
+          textColor: Colors.white,
         ),
         useMaterial3: true,
       ),

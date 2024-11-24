@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:task_manager/globals.dart';
 import 'package:task_manager/models/task_model.dart';
 import 'package:task_manager/providers/auth_provider.dart';
 import 'package:task_manager/providers/task_provider.dart';
+import 'package:task_manager/shared/date_format.dart';
 import 'package:task_manager/shared/delete_dialog.dart';
 
 class AddEditTaskScreen extends ConsumerStatefulWidget {
@@ -20,6 +22,7 @@ class _AddEditTaskScreenState extends ConsumerState<AddEditTaskScreen> {
   late TaskCategory _selectedCategory;
   late TaskPriority _selectedPriority;
   DateTime? _selectedDateTime;
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -69,18 +72,27 @@ class _AddEditTaskScreenState extends ConsumerState<AddEditTaskScreen> {
   }
 
   void _saveTask(BuildContext context) {
-    if (_titleController.text.isEmpty || _selectedDateTime == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Title and due date are required.')),
-      );
+    if (!_formKey.currentState!.validate()) return;
+
+    if (_selectedDateTime == null) {
+      snackbarKey.currentState
+          ?.showSnackBar(globalSnackBar("Please select a date to continue"));
+
       return;
     }
 
+    // if (_titleController.text.isEmpty || _selectedDateTime == null) {
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     const SnackBar(content: Text('Title and due date are required.')),
+    //   );
+    //   return;
+    // }
+
     final userId = ref.read(getUserIdProvider);
     if (userId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('User is not logged in.')),
-      );
+      snackbarKey.currentState
+          ?.showSnackBar(globalSnackBar("User is not logged in"));
+
       return;
     }
 
@@ -134,78 +146,107 @@ class _AddEditTaskScreenState extends ConsumerState<AddEditTaskScreen> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
-          child: Column(
-            children: [
-              TextField(
-                controller: _titleController,
-                decoration: const InputDecoration(labelText: 'Title'),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _descriptionController,
-                decoration: const InputDecoration(labelText: 'Description'),
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<TaskCategory>(
-                value: _selectedCategory,
-                decoration: const InputDecoration(labelText: 'Category'),
-                items: TaskCategory.values.map((category) {
-                  return DropdownMenuItem<TaskCategory>(
-                    value: category,
-                    child: Text(category.name[0].toUpperCase() +
-                        category.name.substring(1)),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() {
-                      _selectedCategory = value;
-                    });
-                  }
-                },
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<TaskPriority>(
-                value: _selectedPriority,
-                decoration: const InputDecoration(labelText: 'Priority'),
-                items: TaskPriority.values.map((priority) {
-                  return DropdownMenuItem<TaskPriority>(
-                    value: priority,
-                    child: Text(priority.name[0].toUpperCase() +
-                        priority.name.substring(1)),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() {
-                      _selectedPriority = value;
-                    });
-                  }
-                },
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    _selectedDateTime != null
-                        ? '${_selectedDateTime!.toLocal()}'.split('.')[0]
-                        : 'No Date Selected',
-                    style: const TextStyle(fontSize: 16),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                TextFormField(
+                  controller: _titleController,
+                  decoration: const InputDecoration(
+                    labelText: 'Title',
+                    border: OutlineInputBorder(),
                   ),
-                  TextButton(
-                    onPressed: () => _pickDateTime(context),
-                    child: const Text('Pick Date & Time'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Please add a title";
+                    }
+                    if (value.length < 6) {
+                      return "Add more than 6 characters to title";
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _descriptionController,
+                  decoration: const InputDecoration(
+                    labelText: 'Description',
+                    border: OutlineInputBorder(),
                   ),
-                ],
-              ),
-              // const Spacer(),
-              const SizedBox(height: 40),
-              ElevatedButton(
-                onPressed: () => _saveTask(context),
-                child: Text(widget.task == null ? 'Add Task' : 'Save Task'),
-              ),
-            ],
+                ),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<TaskCategory>(
+                  value: _selectedCategory,
+                  decoration: const InputDecoration(
+                    labelText: 'Category',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: TaskCategory.values.map((category) {
+                    return DropdownMenuItem<TaskCategory>(
+                      value: category,
+                      child: Text(category.name[0].toUpperCase() +
+                          category.name.substring(1)),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        _selectedCategory = value;
+                      });
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<TaskPriority>(
+                  value: _selectedPriority,
+                  decoration: const InputDecoration(
+                    labelText: 'Priority',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: TaskPriority.values.map((priority) {
+                    return DropdownMenuItem<TaskPriority>(
+                      value: priority,
+                      child: Text(priority.name[0].toUpperCase() +
+                          priority.name.substring(1)),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        _selectedPriority = value;
+                      });
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      onPressed: () => _pickDateTime(context),
+                      child: const Text(
+                        'Pick Date & Time',
+                        style: TextStyle(fontSize: 15),
+                      ),
+                    ),
+                    Text(
+                      _selectedDateTime != null
+                          ? formatIsoToReadableDate(
+                              _selectedDateTime!.toLocal().toIso8601String())
+                          // ? '${_selectedDateTime!.toLocal()}'.split('.')[0]
+                          : 'No Date Selected',
+                      style: const TextStyle(fontSize: 15),
+                    ),
+                  ],
+                ),
+                // const Spacer(),
+                const SizedBox(height: 40),
+                ElevatedButton(
+                  onPressed: () => _saveTask(context),
+                  child: Text(widget.task == null ? 'Add Task' : 'Save Task'),
+                ),
+              ],
+            ),
           ),
         ),
       ),
