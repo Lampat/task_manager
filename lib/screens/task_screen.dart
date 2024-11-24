@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:task_manager/models/task_model.dart';
 import 'package:task_manager/providers/auth_provider.dart';
 import 'package:task_manager/providers/task_provider.dart';
+import 'package:task_manager/shared/delete_dialog.dart';
 
 class AddEditTaskScreen extends ConsumerStatefulWidget {
   final Task? task;
@@ -42,11 +43,11 @@ class _AddEditTaskScreenState extends ConsumerState<AddEditTaskScreen> {
     final date = await showDatePicker(
       context: context,
       initialDate: _selectedDateTime ?? DateTime.now(),
-      firstDate: DateTime(2000),
+      firstDate: DateTime.now(),
       lastDate: DateTime(2100),
     );
 
-    if (date != null) {
+    if (date != null && context.mounted) {
       final time = await showTimePicker(
         context: context,
         initialTime:
@@ -113,13 +114,18 @@ class _AddEditTaskScreenState extends ConsumerState<AddEditTaskScreen> {
           if (widget.task != null)
             IconButton(
               icon: const Icon(Icons.delete),
-              onPressed: () {
+              color: Colors.deepPurple[300],
+              onPressed: () async {
                 final userId = ref.read(getUserIdProvider);
                 if (userId != null) {
-                  ref
-                      .read(taskServiceProvider)
-                      .deleteTask(userId, widget.task!.id);
-                  Navigator.pop(context);
+                  final confirmDelete =
+                      await deleteDialog(context, widget.task?.title ?? "");
+                  if (confirmDelete) {
+                    ref
+                        .read(taskServiceProvider)
+                        .deleteTask(userId, widget.task!.id);
+                    if (context.mounted) Navigator.pop(context);
+                  }
                 }
               },
             ),

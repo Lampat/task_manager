@@ -4,6 +4,7 @@ import 'package:task_manager/providers/auth_provider.dart';
 import 'package:task_manager/providers/task_provider.dart';
 import 'package:task_manager/screens/settings_screen.dart';
 import 'package:task_manager/screens/task_screen.dart';
+import 'package:task_manager/shared/delete_dialog.dart';
 import 'package:task_manager/shared/filter_dialog.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -85,12 +86,16 @@ class HomeScreen extends ConsumerWidget {
                           ),
                           trailing: IconButton(
                             icon: const Icon(Icons.delete),
-                            color: Colors.red[400],
-                            onPressed: () {
+                            color: Colors.deepPurple[300],
+                            onPressed: () async {
                               final userId = ref.read(getUserIdProvider);
-                              ref
-                                  .read(taskServiceProvider)
-                                  .deleteTask(userId ?? "", task.id);
+                              final confirmDelete =
+                                  await deleteDialog(context, task.title);
+                              if (confirmDelete) {
+                                ref
+                                    .read(taskServiceProvider)
+                                    .deleteTask(userId ?? "", task.id);
+                              }
                             },
                           ),
                           onTap: () {
