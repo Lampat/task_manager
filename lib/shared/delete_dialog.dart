@@ -1,25 +1,39 @@
 import 'package:flutter/material.dart';
 
 Future<bool> deleteDialog(BuildContext context, String taskTitle) async {
-  return await showDialog<bool>(
+  return await showGeneralDialog<bool>(
         context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Confirm'),
-            content: Text('Are you sure you want to delete $taskTitle?'),
-            actions: [
-              TextButton(
-                onPressed: () =>
-                    Navigator.of(context).pop(false), // User pressed Cancel
-                child: const Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () =>
-                    Navigator.of(context).pop(true), // User pressed Confirm
-                child: const Text('Delete'),
-              ),
-            ],
+        barrierDismissible: true,
+        barrierColor: Colors.black38,
+        barrierLabel: "",
+        transitionDuration: const Duration(milliseconds: 400),
+        transitionBuilder: (context, a1, a2, child) {
+          return ScaleTransition(
+            scale: CurvedAnimation(
+              parent: a1,
+              curve: Curves.elasticOut,
+              reverseCurve: Curves.easeOutCubic,
+            ),
+            child: AlertDialog(
+              title: const Text('Confirm'),
+              content: Text(
+                  'Are you sure you want to delete the task:\n"$taskTitle" ?'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: const Text('Delete'),
+                ),
+              ],
+            ),
           );
+        },
+        pageBuilder: (BuildContext context, Animation animation,
+            Animation secondaryAnimation) {
+          return const SizedBox();
         },
       ) ??
       false;

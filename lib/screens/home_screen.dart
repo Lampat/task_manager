@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:task_manager/providers/auth_provider.dart';
 import 'package:task_manager/providers/task_provider.dart';
 import 'package:task_manager/screens/settings_screen.dart';
 import 'package:task_manager/screens/task_screen.dart';
-import 'package:task_manager/shared/delete_dialog.dart';
+import 'package:task_manager/shared/animated_navigation.dart';
 import 'package:task_manager/shared/filter_dialog.dart';
+import 'package:task_manager/widgets/task_list.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final groupedTasksAsync = ref.watch(groupedTasksProvider);
     final searchQuery = ref.watch(searchQueryProvider.notifier);
 
     return Scaffold(
@@ -26,9 +25,7 @@ class HomeScreen extends ConsumerWidget {
           IconButton(
               onPressed: () => Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => const SettingsScreen(),
-                    ),
+                    createAnimatedRoute(const SettingsScreen()),
                   ),
               icon: const Icon(Icons.settings))
         ],
@@ -46,76 +43,7 @@ class HomeScreen extends ConsumerWidget {
               ),
             ),
           ),
-          Expanded(
-            child: groupedTasksAsync.when(
-              data: (tasks) {
-                if (tasks.isEmpty) {
-                  return const Center(
-                    child: Text(
-                      'No tasks found.',
-                      style: TextStyle(fontSize: 18, color: Colors.grey),
-                    ),
-                  );
-                }
-                return ListView.builder(
-                  itemCount: tasks.keys.length,
-                  itemBuilder: (context, index) {
-                    final category = tasks.keys.toList()[index];
-                    final tasksInCategory = tasks[category]!;
-
-                    return ExpansionTile(
-                      title: Text(
-                        category.name[0].toUpperCase() +
-                            category.name.substring(1),
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      children: tasksInCategory.map((task) {
-                        return ListTile(
-                          title: Text(task.title),
-                          subtitle: Row(
-                            children: [
-                              Text(
-                                'Priority: ${task.priority.name[0].toUpperCase() + task.priority.name.substring(1)}',
-                              ),
-                              const Spacer(),
-                              Text(
-                                'Due: ${task.dueDate.toLocal()}'.split('.')[0],
-                                style: const TextStyle(fontSize: 12),
-                              ),
-                            ],
-                          ),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.delete),
-                            color: Colors.deepPurple[300],
-                            onPressed: () async {
-                              final userId = ref.read(getUserIdProvider);
-                              final confirmDelete =
-                                  await deleteDialog(context, task.title);
-                              if (confirmDelete) {
-                                ref
-                                    .read(taskServiceProvider)
-                                    .deleteTask(userId ?? "", task.id);
-                              }
-                            },
-                          ),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) =>
-                                      AddEditTaskScreen(task: task)),
-                            );
-                          },
-                        );
-                      }).toList(),
-                    );
-                  },
-                );
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, stack) => Center(child: Text('Error: $error')),
-            ),
-          ),
+          const TasksList(),
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -123,7 +51,7 @@ class HomeScreen extends ConsumerWidget {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const AddEditTaskScreen()),
+            createAnimatedRoute(const AddEditTaskScreen()),
           );
         },
       ),
