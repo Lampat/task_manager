@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:task_manager/providers/auth_provider.dart';
 import 'package:task_manager/providers/task_provider.dart';
+import 'package:task_manager/screens/settings_screen.dart';
 import 'package:task_manager/screens/task_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -12,7 +13,19 @@ class HomeScreen extends ConsumerWidget {
     final tasksAsyncValue = ref.watch(tasksProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Tasks')),
+      appBar: AppBar(
+        title: const Text('Tasks'),
+        actions: [
+          IconButton(
+              onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SettingsScreen(),
+                    ),
+                  ),
+              icon: const Icon(Icons.settings))
+        ],
+      ),
       body: tasksAsyncValue.when(
         data: (tasks) => ListView.builder(
           itemCount: tasks.length,
