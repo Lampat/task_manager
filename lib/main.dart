@@ -5,6 +5,8 @@ import 'package:task_manager/firebase_options.dart';
 import 'package:task_manager/globals.dart';
 import 'package:task_manager/providers/theme_provider.dart';
 import 'package:task_manager/screens/splash_screen.dart';
+import 'package:task_manager/services/notification_service.dart';
+import 'package:timezone/data/latest.dart' as tz;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,6 +14,10 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  // Initializing timezones
+  tz.initializeTimeZones();
+  // Initialize notifications.
+  await NotificationService().initializeNotifications();
   // Wrap app with Riverpod
   runApp(const ProviderScope(child: MyApp()));
 }

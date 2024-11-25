@@ -4,6 +4,7 @@ import 'package:task_manager/models/task_model.dart';
 import 'package:task_manager/providers/auth_provider.dart';
 import 'package:task_manager/providers/task_provider.dart';
 import 'package:task_manager/screens/task_screen.dart';
+import 'package:task_manager/services/notification_service.dart';
 import 'package:task_manager/shared/animated_navigation.dart';
 import 'package:task_manager/shared/date_format.dart';
 import 'package:task_manager/shared/delete_dialog.dart';
@@ -79,6 +80,10 @@ class TaskTile extends ConsumerWidget {
                     ref
                         .read(taskServiceProvider)
                         .deleteTask(userId ?? "", task.id);
+
+                    if (task.reminderTime != null) {
+                      await NotificationService().cancelNotification(task.id);
+                    }
                   }
                 },
               ),

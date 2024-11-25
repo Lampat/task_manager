@@ -32,7 +32,8 @@ class Task {
   final String description;
   final TaskCategory category;
   final DateTime dueDate;
-  final TaskPriority priority; // Changed to TaskPriority
+  final TaskPriority priority;
+  final DateTime? reminderTime;
 
   Task({
     required this.id,
@@ -41,6 +42,7 @@ class Task {
     required this.category,
     required this.dueDate,
     required this.priority,
+    this.reminderTime,
   });
 
   // Convert Task to a map for Firestore
@@ -50,7 +52,8 @@ class Task {
       'description': description,
       'category': category.toFirestoreString(),
       'dueDate': dueDate.toIso8601String(),
-      'priority': priority.toFirestoreString(), // Convert enum to string
+      'reminderTime': reminderTime?.toIso8601String(),
+      'priority': priority.toFirestoreString(),
     };
   }
 
@@ -62,8 +65,10 @@ class Task {
       description: data['description'],
       category: TaskCategoryExtension.fromFirestoreString(data['category']),
       dueDate: DateTime.parse(data['dueDate']),
-      priority: TaskPriorityExtension.fromFirestoreString(
-          data['priority']), // Convert string to enum
+      reminderTime: data['reminderTime'] != null
+          ? DateTime.parse(data['reminderTime'])
+          : null,
+      priority: TaskPriorityExtension.fromFirestoreString(data['priority']),
     );
   }
 }

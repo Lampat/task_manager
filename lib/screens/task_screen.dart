@@ -4,6 +4,7 @@ import 'package:task_manager/globals.dart';
 import 'package:task_manager/models/task_model.dart';
 import 'package:task_manager/providers/auth_provider.dart';
 import 'package:task_manager/providers/task_provider.dart';
+import 'package:task_manager/services/notification_service.dart';
 import 'package:task_manager/shared/date_format.dart';
 import 'package:task_manager/shared/delete_dialog.dart';
 
@@ -22,6 +23,8 @@ class _AddEditTaskScreenState extends ConsumerState<AddEditTaskScreen> {
   late TaskCategory _selectedCategory;
   late TaskPriority _selectedPriority;
   DateTime? _selectedDateTime;
+  DateTime? _reminderDateTime;
+  DateTime? _shouldEditDatetime;
   final _formKey = GlobalKey<FormState>();
 
   @override
@@ -33,6 +36,8 @@ class _AddEditTaskScreenState extends ConsumerState<AddEditTaskScreen> {
     _selectedCategory = widget.task?.category ?? TaskCategory.work;
     _selectedPriority = widget.task?.priority ?? TaskPriority.medium;
     _selectedDateTime = widget.task?.dueDate;
+    _reminderDateTime = widget.task?.reminderTime;
+    _shouldEditDatetime = widget.task?.reminderTime;
   }
 
   @override
@@ -42,10 +47,12 @@ class _AddEditTaskScreenState extends ConsumerState<AddEditTaskScreen> {
     super.dispose();
   }
 
-  Future<void> _pickDateTime(BuildContext context) async {
+  Future<DateTime?> _pickDateTime(
+      BuildContext context, DateTime? alreadySelected) async {
+    DateTime? dateTimePick = alreadySelected;
     final date = await showDatePicker(
       context: context,
-      initialDate: _selectedDateTime ?? DateTime.now(),
+      initialDate: dateTimePick ?? DateTime.now(),
       firstDate: DateTime.now(),
       lastDate: DateTime(2100),
     );
@@ -53,13 +60,12 @@ class _AddEditTaskScreenState extends ConsumerState<AddEditTaskScreen> {
     if (date != null && context.mounted) {
       final time = await showTimePicker(
         context: context,
-        initialTime:
-            TimeOfDay.fromDateTime(_selectedDateTime ?? DateTime.now()),
+        initialTime: TimeOfDay.fromDateTime(dateTimePick ?? DateTime.now()),
       );
 
       if (time != null) {
         setState(() {
-          _selectedDateTime = DateTime(
+          dateTimePick = DateTime(
             date.year,
             date.month,
             date.day,
@@ -69,9 +75,11 @@ class _AddEditTaskScreenState extends ConsumerState<AddEditTaskScreen> {
         });
       }
     }
+
+    return dateTimePick;
   }
 
-  void _saveTask(BuildContext context) {
+  Future<void> _saveTask(BuildContext context) async {
     if (!_formKey.currentState!.validate()) return;
 
     if (_selectedDateTime == null) {
@@ -80,13 +88,6 @@ class _AddEditTaskScreenState extends ConsumerState<AddEditTaskScreen> {
 
       return;
     }
-
-    // if (_titleController.text.isEmpty || _selectedDateTime == null) {
-    //   ScaffoldMessenger.of(context).showSnackBar(
-    //     const SnackBar(content: Text('Title and due date are required.')),
-    //   );
-    //   return;
-    // }
 
     final userId = ref.read(getUserIdProvider);
     if (userId == null) {
@@ -97,23 +98,31 @@ class _AddEditTaskScreenState extends ConsumerState<AddEditTaskScreen> {
     }
 
     final newTask = Task(
-      id: widget.task?.id ??
-          '', // Use existing ID if editing, otherwise generate a new one in the repository
+      id: widget.task?.id ?? '',
       title: _titleController.text.trim(),
       description: _descriptionController.text,
       category: _selectedCategory,
       priority: _selectedPriority,
       dueDate: _selectedDateTime!,
+      reminderTime: _reminderDateTime,
     );
 
     final taskRepo = ref.read(taskServiceProvider);
     if (widget.task == null) {
       taskRepo.createTask(userId, newTask);
+      if (_reminderDateTime != null) {
+        await NotificationService().scheduleNotification(newTask);
+      }
     } else {
       taskRepo.updateTask(userId, newTask);
+      if (_reminderDateTime != null &&
+          _reminderDateTime != _shouldEditDatetime) {
+        await NotificationService().cancelNotification(newTask.id);
+        await NotificationService().scheduleNotification(newTask);
+      }
     }
 
-    Navigator.pop(context);
+    if (context.mounted) Navigator.pop(context);
   }
 
   @override
@@ -136,6 +145,11 @@ class _AddEditTaskScreenState extends ConsumerState<AddEditTaskScreen> {
                     ref
                         .read(taskServiceProvider)
                         .deleteTask(userId, widget.task!.id);
+
+                    if (widget.task?.reminderTime != null) {
+                      await NotificationService()
+                          .cancelNotification(widget.task!.id);
+                    }
                     if (context.mounted) Navigator.pop(context);
                   }
                 }
@@ -223,7 +237,16 @@ class _AddEditTaskScreenState extends ConsumerState<AddEditTaskScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     TextButton(
-                      onPressed: () => _pickDateTime(context),
+                      onPressed: () async {
+                        final res =
+                            await _pickDateTime(context, _selectedDateTime);
+
+                        if (res != null) {
+                          setState(() {
+                            _selectedDateTime = res;
+                          });
+                        }
+                      },
                       child: const Text(
                         'Pick Date & Time',
                         style: TextStyle(fontSize: 15),
@@ -233,14 +256,38 @@ class _AddEditTaskScreenState extends ConsumerState<AddEditTaskScreen> {
                       _selectedDateTime != null
                           ? formatIsoToReadableDate(
                               _selectedDateTime!.toLocal().toIso8601String())
-                          // ? '${_selectedDateTime!.toLocal()}'.split('.')[0]
                           : 'No Date Selected',
                       style: const TextStyle(fontSize: 15),
                     ),
                   ],
                 ),
-                // const Spacer(),
-                const SizedBox(height: 40),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      onPressed: () async {
+                        final res =
+                            await _pickDateTime(context, _reminderDateTime);
+
+                        if (res != null) {
+                          setState(() {
+                            _reminderDateTime = res;
+                          });
+                        }
+                      },
+                      child: const Text(
+                        'Pick Reminder Time',
+                        style: TextStyle(fontSize: 15),
+                      ),
+                    ),
+                    Text(_reminderDateTime != null
+                        ? formatIsoToReadableDate(
+                            _reminderDateTime!.toLocal().toIso8601String())
+                        : 'No date selected'),
+                  ],
+                ),
+                const SizedBox(height: 10),
                 ElevatedButton(
                   onPressed: () => _saveTask(context),
                   child: Text(widget.task == null ? 'Add Task' : 'Save Task'),
