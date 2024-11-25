@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:task_manager/models/task_model.dart';
 
+// Return a color based on priority
 Color priorityColor(TaskPriority priority) {
   switch (priority) {
     case TaskPriority.high:
@@ -14,6 +15,7 @@ Color priorityColor(TaskPriority priority) {
   }
 }
 
+// Return an icon based on priority
 Icon priorityIcon(TaskPriority priority) {
   switch (priority) {
     case TaskPriority.high:

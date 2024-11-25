@@ -6,26 +6,32 @@ import 'package:task_manager/providers/auth_provider.dart';
 import 'package:collection/collection.dart';
 import 'package:task_manager/services/task_service.dart';
 
+// Provider for Firestore instance
 final firestoreProvider =
     Provider<FirebaseFirestore>((ref) => FirebaseFirestore.instance);
 
+// Provider for TaskService using firestore
 final taskServiceProvider = Provider<TaskService>((ref) {
   final firestore = ref.watch(firestoreProvider);
   return TaskService(firestore);
 });
 
+// Stream Provider for tasks in firestore
 final tasksProvider = StreamProvider<List<Task>>((ref) {
   final taskService = ref.watch(taskServiceProvider);
   final userId = ref.watch(getUserIdProvider);
   return taskService.getTasks(userId ?? "");
 });
 
+// Provider to use search functionality for tasks
 final searchQueryProvider = StateProvider<String>((ref) => "");
 
+// Provider to use a filter on tasks
 final taskFilterProvider = StateProvider<TaskFilter>((ref) {
   return TaskFilter(category: null, priority: null);
 });
 
+// Provider to get the tasks based on filter/search parameters
 final groupedTasksProvider =
     Provider<AsyncValue<Map<TaskCategory, List<Task>>>>((ref) {
   final tasksAsync = ref.watch(tasksProvider);

@@ -4,6 +4,7 @@ import 'package:task_manager/models/task_filter.dart';
 import 'package:task_manager/models/task_model.dart';
 import 'package:task_manager/providers/task_provider.dart';
 
+// The custom filter dialog to appear when user wants to apply filter in the tasks list.
 Future<void> showFilterDialog(BuildContext context, WidgetRef ref) async {
   // Get the current filter state
   final currentFilter = ref.read(taskFilterProvider);

@@ -7,11 +7,12 @@ class TaskService {
 
   TaskService(this.firestore);
 
+  // The path for firestore collection
   String userTasksPath(String userId) {
     return 'users/$userId/tasks';
   }
 
-  // Fetch all tasks
+  // Fetch all tasks from firestore
   Stream<List<Task>> getTasks(String userId) {
     final path = userTasksPath(userId);
     return firestore.collection(path).snapshots().map((snapshot) {

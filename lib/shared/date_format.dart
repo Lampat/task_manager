@@ -1,3 +1,4 @@
+// A basic function to format the iso date to readable form
 String formatIsoToReadableDate(String isoDate) {
   try {
     DateTime dateTime = DateTime.parse(isoDate);

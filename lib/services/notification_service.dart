@@ -9,6 +9,7 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
+  // Initiazing notifications plugin
   Future<void> initializeNotifications() async {
     // Initialization settings for Android
     const AndroidInitializationSettings initializationSettingsAndroid =
@@ -60,6 +61,7 @@ class NotificationService {
         ?.createNotificationChannel(channel);
   }
 
+  // The function to schedule a local notification for a specific date and time
   Future<void> scheduleNotification(Task task) async {
     if (task.reminderTime != null) {
       await flutterLocalNotificationsPlugin.zonedSchedule(
@@ -83,6 +85,7 @@ class NotificationService {
     }
   }
 
+  // Function to cancel an already created notification
   Future<void> cancelNotification(String taskId) async {
     await flutterLocalNotificationsPlugin.cancel(taskId.hashCode);
   }

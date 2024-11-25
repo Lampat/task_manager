@@ -19,6 +19,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       TextEditingController();
   bool _register = false;
 
+  // Sign in/up with email and password
   Future<void> _submitSignInUpWithEmailAncPassword() async {
     if (_formKey.currentState!.validate()) {
       final email = _emailController.text.trim();
@@ -35,6 +36,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     }
   }
 
+  // Sign in/up with Google
   Future<void> _signInUpWithGoogle() async {
     try {
       await ref.read(authServiceProvider).signInWithGoogle();
@@ -44,12 +46,16 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   }
 
   @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _passwordConfirmController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(
-      //   title: const Text('Authentication'),
-      //   centerTitle: true,
-      // ),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(

@@ -30,6 +30,7 @@ class _AddEditTaskScreenState extends ConsumerState<AddEditTaskScreen> {
   @override
   void initState() {
     super.initState();
+    // Initialize values with already created if we are editing or the default if we are creating the task
     _titleController = TextEditingController(text: widget.task?.title ?? '');
     _descriptionController =
         TextEditingController(text: widget.task?.description ?? '');
@@ -42,11 +43,13 @@ class _AddEditTaskScreenState extends ConsumerState<AddEditTaskScreen> {
 
   @override
   void dispose() {
+    // dispose the controllers
     _titleController.dispose();
     _descriptionController.dispose();
     super.dispose();
   }
 
+  // Function to pick date and time
   Future<DateTime?> _pickDateTime(
       BuildContext context, DateTime? alreadySelected) async {
     DateTime? dateTimePick = alreadySelected;
@@ -79,6 +82,7 @@ class _AddEditTaskScreenState extends ConsumerState<AddEditTaskScreen> {
     return dateTimePick;
   }
 
+  // save the task > submiting the form
   Future<void> _saveTask(BuildContext context) async {
     if (!_formKey.currentState!.validate()) return;
 

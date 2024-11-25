@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+// A custom dialog to appear when deleting a task
 Future<bool> deleteDialog(BuildContext context, String taskTitle) async {
   return await showGeneralDialog<bool>(
         context: context,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+// A custom animation for animating the route from one screen to another
 Route createAnimatedRoute(Widget pageToRoute) {
   return PageRouteBuilder(
     pageBuilder: (context, animation, secondaryAnimation) => pageToRoute,

@@ -9,6 +9,7 @@ class AuthService {
 
   AuthService({required this.auth, required this.googleSignIn});
 
+  // Sign in with email and password
   Future<void> signIn(String email, String password) async {
     try {
       await auth.signInWithEmailAndPassword(email: email, password: password);
@@ -23,6 +24,7 @@ class AuthService {
     }
   }
 
+  // User sign out
   Future<void> signOut() async {
     try {
       await auth.signOut();
@@ -37,6 +39,7 @@ class AuthService {
     }
   }
 
+  // Register a new user to the app with email and password
   Future<void> register(String email, String password) async {
     try {
       await auth.createUserWithEmailAndPassword(
@@ -52,6 +55,7 @@ class AuthService {
     }
   }
 
+  // Sign in with google
   Future<void> signInWithGoogle() async {
     final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
     if (googleUser == null) {
