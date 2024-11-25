@@ -27,8 +27,22 @@ class TasksList extends ConsumerWidget {
               final category = tasks.keys.toList()[index];
               final tasksInCategory = tasks[category]!;
 
-              return TaskTile(
-                  category: category, tasksInCategory: tasksInCategory);
+              return Card(
+                margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
+                child: ExpansionTile(
+                  shape: Border.all(color: Colors.transparent),
+                  title: Text(
+                    category.name[0].toUpperCase() + category.name.substring(1),
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  children: tasksInCategory.map((task) {
+                    return TaskTile(task: task);
+                  }).toList(),
+                ),
+              );
             },
           );
         },

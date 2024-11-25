@@ -13,87 +13,68 @@ import 'package:task_manager/shared/priority_color.dart';
 class TaskTile extends ConsumerWidget {
   const TaskTile({
     super.key,
-    required this.category,
-    required this.tasksInCategory,
+    required this.task,
   });
 
-  final TaskCategory category;
-  final List<Task> tasksInCategory;
+  final Task task;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      elevation: 4,
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12.0),
       ),
-      child: ExpansionTile(
-        shape: Border.all(color: Colors.transparent),
-        title: Text(
-          category.name[0].toUpperCase() + category.name.substring(1),
-          style: const TextStyle(fontWeight: FontWeight.bold),
+      child: ListTile(
+        contentPadding:
+            const EdgeInsetsDirectional.symmetric(vertical: 10, horizontal: 16),
+        leading: CircleAvatar(
+          backgroundColor: priorityColor(task.priority),
+          child: priorityIcon(task.priority),
         ),
-        children: tasksInCategory.map((task) {
-          return Card(
-            elevation: 4,
-            margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12.0),
+        title: Text(
+          task.title,
+          style: const TextStyle(
+            // color: Colors.grey[500],
+            fontSize: 15,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        subtitle: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Priority: ${task.priority.name[0].toUpperCase() + task.priority.name.substring(1)}',
             ),
-            child: ListTile(
-              contentPadding: const EdgeInsetsDirectional.symmetric(
-                  vertical: 10, horizontal: 16),
-              leading: CircleAvatar(
-                backgroundColor: priorityColor(task.priority),
-                child: priorityIcon(task.priority),
-              ),
-              title: Text(
-                task.title,
-                style: const TextStyle(
-                  // color: Colors.grey[500],
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              subtitle: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Priority: ${task.priority.name[0].toUpperCase() + task.priority.name.substring(1)}',
-                  ),
-                  // const Spacer(),
-                  Text(
-                    'Due: ${formatIsoToReadableDate(task.dueDate.toLocal().toIso8601String())}',
-                    // 'Due: ${task.dueDate.toLocal()}'.split('.')[0],
-                    style: const TextStyle(fontSize: 12),
-                  ),
-                ],
-              ),
-              trailing: IconButton(
-                icon: const Icon(Icons.delete),
-                color: Colors.deepPurple[300],
-                onPressed: () async {
-                  final userId = ref.read(getUserIdProvider);
-                  final confirmDelete = await deleteDialog(context, task.title);
-                  if (confirmDelete) {
-                    ref
-                        .read(taskServiceProvider)
-                        .deleteTask(userId ?? "", task.id);
+            // const Spacer(),
+            Text(
+              'Due: ${formatIsoToReadableDate(task.dueDate.toLocal().toIso8601String())}',
+              // 'Due: ${task.dueDate.toLocal()}'.split('.')[0],
+              style: const TextStyle(fontSize: 12),
+            ),
+          ],
+        ),
+        trailing: IconButton(
+          icon: const Icon(Icons.delete),
+          color: Colors.deepPurple[300],
+          onPressed: () async {
+            final userId = ref.read(getUserIdProvider);
+            final confirmDelete = await deleteDialog(context, task.title);
+            if (confirmDelete) {
+              ref.read(taskServiceProvider).deleteTask(userId ?? "", task.id);
 
-                    if (task.reminderTime != null) {
-                      await NotificationService().cancelNotification(task.id);
-                    }
-                  }
-                },
-              ),
-              onTap: () {
-                Navigator.push(context,
-                    createAnimatedRoute(AddEditTaskScreen(task: task)));
-              },
-            ),
-          );
-        }).toList(),
+              if (task.reminderTime != null) {
+                await NotificationService().cancelNotification(task.id);
+              }
+            }
+          },
+        ),
+        onTap: () {
+          Navigator.push(
+              context, createAnimatedRoute(AddEditTaskScreen(task: task)));
+        },
       ),
     );
   }
